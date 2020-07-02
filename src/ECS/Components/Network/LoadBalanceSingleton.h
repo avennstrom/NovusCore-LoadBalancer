@@ -4,6 +4,7 @@
 #include <entity/fwd.hpp>
 #include <vector>
 
+#pragma pack(push, 1)
 struct ServerInformation
 {
     entt::entity entity = entt::null;
@@ -11,6 +12,7 @@ struct ServerInformation
     u32 address = 0;
     u16 port = 0;
 };
+#pragma pack(pop)
 struct LoadBalanceSingleton
 {
     LoadBalanceSingleton()
