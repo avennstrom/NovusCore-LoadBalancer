@@ -11,19 +11,19 @@ namespace InternalSocket
 {
     void GeneralHandlers::Setup(MessageHandler* messageHandler)
     {
-        messageHandler->SetMessageHandler(Opcode::SMSG_CONNECTED, { ConnectionStatus::AUTH_SUCCESS, 0, GeneralHandlers::SMSG_CONNECTED });
-        messageHandler->SetMessageHandler(Opcode::MSG_REQUEST_ADDRESS, { ConnectionStatus::CONNECTED, sizeof(AddressType), GeneralHandlers::MSG_REQUEST_ADDRESS });
-        messageHandler->SetMessageHandler(Opcode::SMSG_SEND_FULL_INTERNAL_SERVER_INFO, { ConnectionStatus::CONNECTED, sizeof(ServerInformation), GeneralHandlers::SMSG_SEND_FULL_INTERNAL_SERVER_INFO });
-        messageHandler->SetMessageHandler(Opcode::SMSG_SEND_ADD_INTERNAL_SERVER_INFO, { ConnectionStatus::CONNECTED, sizeof(ServerInformation), GeneralHandlers::SMSG_SEND_ADD_INTERNAL_SERVER_INFO });
-        messageHandler->SetMessageHandler(Opcode::SMSG_SEND_REMOVE_INTERNAL_SERVER_INFO, { ConnectionStatus::CONNECTED, sizeof(entt::entity) + sizeof(AddressType), GeneralHandlers::SMSG_SEND_REMOVE_INTERNAL_SERVER_INFO });
+        messageHandler->SetMessageHandler(Opcode::SMSG_CONNECTED, { ConnectionStatus::AUTH_SUCCESS, 0, GeneralHandlers::HandleConnected });
+        messageHandler->SetMessageHandler(Opcode::MSG_REQUEST_ADDRESS, { ConnectionStatus::CONNECTED, sizeof(AddressType), GeneralHandlers::HandleRequestAddress });
+        messageHandler->SetMessageHandler(Opcode::SMSG_SEND_FULL_INTERNAL_SERVER_INFO, { ConnectionStatus::CONNECTED, sizeof(ServerInformation), GeneralHandlers::HandleFullServerInfoUpdate });
+        messageHandler->SetMessageHandler(Opcode::SMSG_SEND_ADD_INTERNAL_SERVER_INFO, { ConnectionStatus::CONNECTED, sizeof(ServerInformation), GeneralHandlers::HandleServerInfoAdd });
+        messageHandler->SetMessageHandler(Opcode::SMSG_SEND_REMOVE_INTERNAL_SERVER_INFO, { ConnectionStatus::CONNECTED, sizeof(entt::entity) + sizeof(AddressType), GeneralHandlers::HandleServerInfoRemove });
     }
 
-    bool GeneralHandlers::SMSG_CONNECTED(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
+    bool GeneralHandlers::HandleConnected(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
     {
         networkClient->SetStatus(ConnectionStatus::CONNECTED);
         return true;
     }
-    bool GeneralHandlers::MSG_REQUEST_ADDRESS(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
+    bool GeneralHandlers::HandleRequestAddress(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
     {
         // Validate that we did get an AddressType and that it is valid
         AddressType requestType;
@@ -81,7 +81,7 @@ namespace InternalSocket
         networkClient->Send(buffer.get());
         return true;
     }
-    bool GeneralHandlers::SMSG_SEND_FULL_INTERNAL_SERVER_INFO(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
+    bool GeneralHandlers::HandleFullServerInfoUpdate(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
     {
         entt::registry* registry = ServiceLocator::GetRegistry();
         LoadBalanceSingleton& loadBalanceSingleton = registry->ctx<LoadBalanceSingleton>();
@@ -139,7 +139,7 @@ namespace InternalSocket
 
         return true;
     }
-    bool GeneralHandlers::SMSG_SEND_ADD_INTERNAL_SERVER_INFO(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
+    bool GeneralHandlers::HandleServerInfoAdd(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
     {
         entt::registry* registry = ServiceLocator::GetRegistry();
         LoadBalanceSingleton& loadBalanceSingleton = registry->ctx<LoadBalanceSingleton>();
@@ -192,7 +192,7 @@ namespace InternalSocket
 
         return true;
     }
-    bool GeneralHandlers::SMSG_SEND_REMOVE_INTERNAL_SERVER_INFO(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
+    bool GeneralHandlers::HandleServerInfoRemove(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
     {
         entt::registry* registry = ServiceLocator::GetRegistry();
         LoadBalanceSingleton& loadBalanceSingleton = registry->ctx<LoadBalanceSingleton>();
