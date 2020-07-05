@@ -12,18 +12,18 @@ namespace InternalSocket
     void GeneralHandlers::Setup(MessageHandler* messageHandler)
     {
         messageHandler->SetMessageHandler(Opcode::SMSG_CONNECTED, { ConnectionStatus::AUTH_SUCCESS, 0, GeneralHandlers::HandleConnected });
-        messageHandler->SetMessageHandler(Opcode::MSG_REQUEST_ADDRESS, { ConnectionStatus::CONNECTED, sizeof(AddressType), GeneralHandlers::HandleRequestAddress });
-        messageHandler->SetMessageHandler(Opcode::SMSG_SEND_FULL_INTERNAL_SERVER_INFO, { ConnectionStatus::CONNECTED, sizeof(ServerInformation), GeneralHandlers::HandleFullServerInfoUpdate });
+        messageHandler->SetMessageHandler(Opcode::MSG_REQUEST_ADDRESS, { ConnectionStatus::CONNECTED, sizeof(AddressType), 128, GeneralHandlers::HandleRequestAddress });
+        messageHandler->SetMessageHandler(Opcode::SMSG_SEND_FULL_INTERNAL_SERVER_INFO, { ConnectionStatus::CONNECTED, sizeof(ServerInformation), NETWORK_BUFFER_SIZE, GeneralHandlers::HandleFullServerInfoUpdate });
         messageHandler->SetMessageHandler(Opcode::SMSG_SEND_ADD_INTERNAL_SERVER_INFO, { ConnectionStatus::CONNECTED, sizeof(ServerInformation), GeneralHandlers::HandleServerInfoAdd });
         messageHandler->SetMessageHandler(Opcode::SMSG_SEND_REMOVE_INTERNAL_SERVER_INFO, { ConnectionStatus::CONNECTED, sizeof(entt::entity) + sizeof(AddressType), GeneralHandlers::HandleServerInfoRemove });
     }
 
-    bool GeneralHandlers::HandleConnected(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
+    bool GeneralHandlers::HandleConnected(std::shared_ptr<NetworkClient> networkClient, std::shared_ptr<NetworkPacket>& packet)
     {
         networkClient->SetStatus(ConnectionStatus::CONNECTED);
         return true;
     }
-    bool GeneralHandlers::HandleRequestAddress(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
+    bool GeneralHandlers::HandleRequestAddress(std::shared_ptr<NetworkClient> networkClient, std::shared_ptr<NetworkPacket>& packet)
     {
         // Validate that we did get an AddressType and that it is valid
         AddressType requestType;
@@ -78,10 +78,10 @@ namespace InternalSocket
         if (!PacketUtils::Write_SMSG_SEND_ADDRESS(buffer, status, serverInformation.address, serverInformation.port, packet->payload->GetReadPointer(), packet->payload->GetReadSpace()))
             return false;
 
-        networkClient->Send(buffer.get());
+        networkClient->Send(buffer);
         return true;
     }
-    bool GeneralHandlers::HandleFullServerInfoUpdate(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
+    bool GeneralHandlers::HandleFullServerInfoUpdate(std::shared_ptr<NetworkClient> networkClient, std::shared_ptr<NetworkPacket>& packet)
     {
         entt::registry* registry = ServiceLocator::GetRegistry();
         LoadBalanceSingleton& loadBalanceSingleton = registry->ctx<LoadBalanceSingleton>();
@@ -139,7 +139,7 @@ namespace InternalSocket
 
         return true;
     }
-    bool GeneralHandlers::HandleServerInfoAdd(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
+    bool GeneralHandlers::HandleServerInfoAdd(std::shared_ptr<NetworkClient> networkClient, std::shared_ptr<NetworkPacket>& packet)
     {
         entt::registry* registry = ServiceLocator::GetRegistry();
         LoadBalanceSingleton& loadBalanceSingleton = registry->ctx<LoadBalanceSingleton>();
@@ -192,7 +192,7 @@ namespace InternalSocket
 
         return true;
     }
-    bool GeneralHandlers::HandleServerInfoRemove(std::shared_ptr<NetworkClient> networkClient, NetworkPacket* packet)
+    bool GeneralHandlers::HandleServerInfoRemove(std::shared_ptr<NetworkClient> networkClient, std::shared_ptr<NetworkPacket>& packet)
     {
         entt::registry* registry = ServiceLocator::GetRegistry();
         LoadBalanceSingleton& loadBalanceSingleton = registry->ctx<LoadBalanceSingleton>();
