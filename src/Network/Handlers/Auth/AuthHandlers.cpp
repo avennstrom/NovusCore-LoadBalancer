@@ -69,8 +69,9 @@ namespace InternalSocket
 
         std::shared_ptr<Bytebuffer> buffer = Bytebuffer::Borrow<128>();
         buffer->Put(Opcode::CMSG_CONNECTED);
-        buffer->PutU16(7);
+        buffer->PutU16(8);
         buffer->Put(AddressType::LOADBALANCE);
+        buffer->PutU8(0);
 
         auto& localEndpoint = networkClient->socket()->local_endpoint();
         buffer->PutU32(localEndpoint.address().to_v4().to_uint());

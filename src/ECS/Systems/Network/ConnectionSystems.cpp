@@ -26,7 +26,7 @@ void ConnectionUpdateSystem::Update(entt::registry& registry)
             if (!networkMessageHandler->CallHandler(connectionSingleton.networkClient, packet))
             {
                 connectionSingleton.networkClient->Close(asio::error::shut_down);
-                return;
+                break;
             }
         }
     }

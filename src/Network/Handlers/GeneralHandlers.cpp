@@ -101,6 +101,9 @@ namespace InternalSocket
                 return false;
             }
 
+            if (!packet->payload->GetU8(serverInformation.realmId))
+                return false;
+
             if (!packet->payload->GetU32(serverInformation.address))
                 return false;
 
@@ -155,6 +158,9 @@ namespace InternalSocket
             return false;
         }
 
+        if (!packet->payload->GetU8(serverInformation.realmId))
+            return false;
+
         if (!packet->payload->GetU32(serverInformation.address))
             return false;
 
@@ -199,6 +205,7 @@ namespace InternalSocket
 
         entt::entity entity = entt::null;
         AddressType type = AddressType::INVALID;
+        u8 realmId = 0;
 
         if (!packet->payload->Get(entity))
             return false;
@@ -209,7 +216,10 @@ namespace InternalSocket
             return false;
         }
 
-        loadBalanceSingleton.Remove(type, entity);
+        if (!packet->payload->GetU8(realmId))
+            return false;
+
+        loadBalanceSingleton.Remove(type, entity, realmId);
 
         return true;
     }
