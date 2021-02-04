@@ -90,6 +90,8 @@ void EngineLoop::Run()
 
     Timer timer;
     f32 targetDelta = 1.0f / 60.0f;
+    bool shouldFrameSync = false;
+
     while (true)
     {
         f32 deltaTime = timer.GetDeltaTime();
@@ -102,6 +104,7 @@ void EngineLoop::Run()
         if (!Update())
             break;
 
+        if (shouldFrameSync)
         {
             ZoneScopedNC("WaitForTickRate", tracy::Color::AntiqueWhite1)
 
@@ -119,7 +122,6 @@ void EngineLoop::Run()
                 }
             }
         }
-
 
         FrameMark
     }
