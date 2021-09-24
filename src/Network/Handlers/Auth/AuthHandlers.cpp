@@ -73,7 +73,7 @@ namespace InternalSocket
         buffer->Put(AddressType::LOADBALANCE);
         buffer->PutU8(0);
 
-        auto& localEndpoint = networkClient->socket()->local_endpoint();
+        auto localEndpoint = networkClient->socket()->local_endpoint();
         buffer->PutU32(localEndpoint.address().to_v4().to_uint());
         buffer->PutU16(0);
 
